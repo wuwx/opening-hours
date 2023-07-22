@@ -18,4 +18,11 @@ public class TimeRangeTest extends TestCase {
         assertEquals(timeRange.getEnd(), DateUtil.parse("1970-01-01 21:00:00"));
     }
 
+    public void testContainsTime() {
+        TimeRange timeRange = TimeRange.fromString("20:00-21:00");
+
+        assertTrue(timeRange.containsTime(DateUtil.parse("20:30", "HH:mm")));
+        assertFalse(timeRange.containsTime(DateUtil.parse("21:30", "HH:mm")));
+    }
+
 }

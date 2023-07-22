@@ -20,16 +20,20 @@ public class TimeRange {
         this.end = end;
     }
 
+    public DateTime getStart() {
+        return start;
+    }
+
+    public DateTime getEnd() {
+        return end;
+    }
+
     public static TimeRange fromString(String openingHour) {
         List<String> times = StrUtil.split(openingHour, "-");
         return new TimeRange(DateUtil.parse(times.get(0), "HH:mm"), DateUtil.parse(times.get(1), "HH:mm"));
     }
 
-    public DateTime getStart() {
-        return this.start;
-    }
-
-    public DateTime getEnd() {
-        return this.end;
+    public boolean containsTime(DateTime dateTime) {
+        return dateTime.after(this.start) && dateTime.before(this.end);
     }
 }

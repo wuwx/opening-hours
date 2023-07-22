@@ -7,10 +7,10 @@ import junit.framework.TestCase;
 public class OpeningHoursForDayTest extends TestCase {
     public void testFromStrings() {
         OpeningHoursForDay openingHoursForDay1 = OpeningHoursForDay.fromStrings(ListUtil.of("08:00-09:00"));
-        assertEquals(openingHoursForDay1.openingHours.size(), 1);
+        assertEquals(openingHoursForDay1.timeRanges.size(), 1);
 
         OpeningHoursForDay openingHoursForDay2 = OpeningHoursForDay.fromStrings(ListUtil.of("08:00-09:00", "10:00-11:00"));
-        assertEquals(openingHoursForDay2.openingHours.size(), 2);
+        assertEquals(openingHoursForDay2.timeRanges.size(), 2);
     }
 
     public void testIsEmpty() {

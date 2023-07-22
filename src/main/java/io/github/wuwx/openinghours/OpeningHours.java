@@ -21,7 +21,7 @@ public class OpeningHours {
 
     private Map<DayOfWeek, OpeningHoursForDay> openingHours;
 
-    private Map<String, Object> exceptions;
+    private Map<String, OpeningHoursForDay> exceptions;
 
     public OpeningHours(TimeZone timeZone, TimeZone outputTimeZone) {
         this.timeZone = timeZone;
@@ -41,10 +41,7 @@ public class OpeningHours {
         for (Map.Entry<String, List<String>> entry : data.entrySet()) {
             this.setOpeningHoursFromStrings(entry.getKey(), entry.getValue());
         }
-        MapUtil.map(data, (day, openingHoursForThisDay) -> {
-
-            return openingHoursForThisDay;
-        });
+        this.setExceptionsFromStrings(null);
         return this;
     }
 
@@ -69,7 +66,7 @@ public class OpeningHours {
         this.openingHours.put(DayOfWeek.valueOf(day.toUpperCase()), OpeningHoursForDay.fromStrings(openingHours));
     }
 
-    protected void setExceptionsFromStrings(Map<String, List<String>> exceptions) {
+    private void setExceptionsFromStrings(Map<String, List<String>> exceptions) {
         this.exceptions = null;
     }
 }
