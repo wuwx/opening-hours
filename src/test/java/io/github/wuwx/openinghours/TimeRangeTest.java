@@ -1,28 +1,42 @@
 package io.github.wuwx.openinghours;
 
-import cn.hutool.core.date.DateUtil;
-import junit.framework.TestCase;
+import org.junit.Test;
+import static org.junit.Assert.*;
 
-public class TimeRangeTest extends TestCase {
+import java.time.LocalTime;
 
+public class TimeRangeTest {
+
+    @Test
     public void testFromString() {
         TimeRange timeRange = TimeRange.fromString("20:00-21:00");
 
-        assertEquals(timeRange.getStart(), DateUtil.parse("20:00", "HH:mm"));
-        assertEquals(timeRange.getEnd(), DateUtil.parse("21:00", "HH:mm"));
-
-        assertEquals(timeRange.getStart(), DateUtil.parseTime("20:00:00"));
-        assertEquals(timeRange.getEnd(), DateUtil.parseTime("21:00:00"));
-
-        assertEquals(timeRange.getStart(), DateUtil.parse("1970-01-01 20:00:00"));
-        assertEquals(timeRange.getEnd(), DateUtil.parse("1970-01-01 21:00:00"));
+        assertEquals(Time.fromString("20:00"), timeRange.start());
+        assertEquals(Time.fromString("21:00"), timeRange.end());
+        assertEquals("20:00-21:00", timeRange.toString());
     }
 
+    @Test
     public void testContainsTime() {
         TimeRange timeRange = TimeRange.fromString("20:00-21:00");
 
-        assertTrue(timeRange.containsTime(DateUtil.parse("20:30", "HH:mm")));
-        assertFalse(timeRange.containsTime(DateUtil.parse("21:30", "HH:mm")));
+        assertTrue(timeRange.containsTime(LocalTime.of(20, 30)));
+        assertFalse(timeRange.containsTime(LocalTime.of(21, 30)));
+        assertFalse(timeRange.containsTime(LocalTime.of(19, 30)));
+    }
+    
+    @Test
+    public void testOvernightRange() {
+        TimeRange timeRange = TimeRange.fromString("22:00-02:00");
+        
+        // Should be open at 23:00
+        assertTrue(timeRange.containsTime(LocalTime.of(23, 0)));
+        // Should be open at 01:00
+        assertTrue(timeRange.containsTime(LocalTime.of(1, 0)));
+        // Should be closed at 03:00
+        assertFalse(timeRange.containsTime(LocalTime.of(3, 0)));
+        // Should be closed at 10:00
+        assertFalse(timeRange.containsTime(LocalTime.of(10, 0)));
     }
 
 }
