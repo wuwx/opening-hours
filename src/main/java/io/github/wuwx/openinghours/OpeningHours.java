@@ -41,15 +41,33 @@ public class OpeningHours {
     
     /**
      * Create opening hours from data map
+     * 
+     * @param data the opening hours data map
+     * @return a new OpeningHours instance
      */
     public static OpeningHours create(Map<String, Object> data) {
         return create(data, null, null);
     }
     
+    /**
+     * Create opening hours with timezone
+     * 
+     * @param data the opening hours data map
+     * @param timezone the timezone for input and output
+     * @return a new OpeningHours instance
+     */
     public static OpeningHours create(Map<String, Object> data, ZoneId timezone) {
         return create(data, timezone, timezone);
     }
     
+    /**
+     * Create opening hours with separate input and output timezones
+     * 
+     * @param data the opening hours data map
+     * @param timezone the input timezone
+     * @param outputTimezone the output timezone
+     * @return a new OpeningHours instance
+     */
     public static OpeningHours create(Map<String, Object> data, ZoneId timezone, ZoneId outputTimezone) {
         Map<DayOfWeek, OpeningHoursForDay> openingHours = new EnumMap<>(DayOfWeek.class);
         Map<String, OpeningHoursForDay> exceptions = new HashMap<>();
@@ -266,6 +284,9 @@ public class OpeningHours {
     /**
      * Fill opening hours with data (non-static version of create)
      * Note: This returns a new instance rather than modifying the existing one (immutability)
+     * 
+     * @param data the opening hours data map
+     * @return a new OpeningHours instance
      */
     public OpeningHours fill(Map<String, Object> data) {
         return create(data, this.timezone, this.outputTimezone);
@@ -273,6 +294,10 @@ public class OpeningHours {
     
     /**
      * Check if open on a specific day name or date string
+     * Supports day names (e.g., "monday") and date strings (e.g., "2020-09-03", "09-03")
+     * 
+     * @param day the day name or date string
+     * @return true if open on that day/date
      */
     public boolean isOpenOn(String day) {
         // Try to parse as day name first
@@ -302,13 +327,19 @@ public class OpeningHours {
     
     /**
      * Check if closed on a specific day name
+     * 
+     * @param day the day name or date string
+     * @return true if closed on that day/date
      */
     public boolean isClosedOn(String day) {
         return !isOpenOn(day);
     }
-
+    
     /**
      * Check if open at specific date/time
+     * 
+     * @param dateTime the date and time to check
+     * @return true if open at that date/time
      */
     public boolean isOpenAt(LocalDateTime dateTime) {
         OpeningHoursForDay day = forDate(dateTime);
@@ -317,6 +348,9 @@ public class OpeningHours {
     
     /**
      * Check if closed at specific date/time
+     * 
+     * @param dateTime the date and time to check
+     * @return true if closed at that date/time
      */
     public boolean isClosedAt(LocalDateTime dateTime) {
         return !isOpenAt(dateTime);
@@ -324,6 +358,8 @@ public class OpeningHours {
     
     /**
      * Check if open right now
+     * 
+     * @return true if currently open
      */
     public boolean isOpen() {
         return isOpenAt(LocalDateTime.now(timezone != null ? timezone : ZoneId.systemDefault()));
@@ -331,6 +367,8 @@ public class OpeningHours {
     
     /**
      * Check if closed right now
+     * 
+     * @return true if currently closed
      */
     public boolean isClosed() {
         return !isOpen();
@@ -338,6 +376,8 @@ public class OpeningHours {
     
     /**
      * Check if always open (24/7)
+     * 
+     * @return true if open 24/7 with no exceptions or filters
      */
     public boolean isAlwaysOpen() {
         // Must have no exceptions and no filters
@@ -374,6 +414,8 @@ public class OpeningHours {
     
     /**
      * Check if always closed
+     * 
+     * @return true if never open with no exceptions or filters
      */
     public boolean isAlwaysClosed() {
         // Must have no exceptions and no filters
@@ -394,6 +436,9 @@ public class OpeningHours {
     
     /**
      * Get opening hours for a specific day name
+     * 
+     * @param day the day name (e.g., "monday", "tuesday")
+     * @return the opening hours for that day
      */
     public OpeningHoursForDay forDay(String day) {
         DayOfWeek dayOfWeek = DayOfWeek.valueOf(day.toUpperCase());
@@ -402,6 +447,10 @@ public class OpeningHours {
     
     /**
      * Get opening hours for a specific date
+     * Considers exceptions and filters
+     * 
+     * @param dateTime the date to check
+     * @return the opening hours for that date
      */
     public OpeningHoursForDay forDate(LocalDateTime dateTime) {
         LocalDate date = dateTime.toLocalDate();
@@ -432,6 +481,8 @@ public class OpeningHours {
     
     /**
      * Get opening hours for the whole week
+     * 
+     * @return a map of day names to opening hours, containing all 7 days
      */
     public Map<String, OpeningHoursForDay> forWeek() {
         Map<String, OpeningHoursForDay> week = new LinkedHashMap<>();
@@ -443,6 +494,8 @@ public class OpeningHours {
     
     /**
      * Get combined opening hours (days with same hours grouped)
+     * 
+     * @return a map with first day as key, containing days list and hours
      */
     public Map<String, Object> forWeekCombined() {
         Map<String, Object> combined = new LinkedHashMap<>();
@@ -474,6 +527,8 @@ public class OpeningHours {
     
     /**
      * Get consecutive days with same opening hours
+     * 
+     * @return a map with first day as key, containing consecutive days list and hours
      */
     public Map<String, Object> forWeekConsecutiveDays() {
         Map<String, Object> consecutive = new LinkedHashMap<>();
@@ -514,18 +569,31 @@ public class OpeningHours {
     
     /**
      * Get all exceptions
+     * 
+     * @return a map of date strings to opening hours for exceptions
      */
     public Map<String, OpeningHoursForDay> exceptions() {
         return new HashMap<>(exceptions);
     }
     
     /**
-     * Get next open date/time
+     * Get next open date/time from the given date/time
+     * 
+     * @param dateTime the starting date/time (null for now)
+     * @return the next open date/time
      */
     public LocalDateTime nextOpen(LocalDateTime dateTime) {
         return nextOpen(dateTime, null, null);
     }
     
+    /**
+     * Get next open date/time with search limits
+     * 
+     * @param dateTime the starting date/time (null for now)
+     * @param searchUntil throw exception if not found before this time
+     * @param cap return this time if not found before it
+     * @return the next open date/time
+     */
     public LocalDateTime nextOpen(LocalDateTime dateTime, LocalDateTime searchUntil, LocalDateTime cap) {
         if (dateTime == null) {
             dateTime = LocalDateTime.now(timezone != null ? timezone : ZoneId.systemDefault());
@@ -575,12 +643,23 @@ public class OpeningHours {
     }
     
     /**
-     * Get next close date/time
+     * Get next close date/time from the given date/time
+     * 
+     * @param dateTime the starting date/time (null for now)
+     * @return the next close date/time
      */
     public LocalDateTime nextClose(LocalDateTime dateTime) {
         return nextClose(dateTime, null, null);
     }
     
+    /**
+     * Get next close date/time with search limits
+     * 
+     * @param dateTime the starting date/time (null for now)
+     * @param searchUntil throw exception if not found before this time
+     * @param cap return this time if not found before it
+     * @return the next close date/time
+     */
     public LocalDateTime nextClose(LocalDateTime dateTime, LocalDateTime searchUntil, LocalDateTime cap) {
         if (dateTime == null) {
             dateTime = LocalDateTime.now(timezone != null ? timezone : ZoneId.systemDefault());
@@ -658,12 +737,23 @@ public class OpeningHours {
     }
     
     /**
-     * Get previous open date/time
+     * Get previous open date/time from the given date/time
+     * 
+     * @param dateTime the starting date/time (null for now)
+     * @return the previous open date/time
      */
     public LocalDateTime previousOpen(LocalDateTime dateTime) {
         return previousOpen(dateTime, null, null);
     }
     
+    /**
+     * Get previous open date/time with search limits
+     * 
+     * @param dateTime the starting date/time (null for now)
+     * @param searchUntil throw exception if not found after this time
+     * @param cap return this time if not found after it
+     * @return the previous open date/time
+     */
     public LocalDateTime previousOpen(LocalDateTime dateTime, LocalDateTime searchUntil, LocalDateTime cap) {
         if (dateTime == null) {
             dateTime = LocalDateTime.now(timezone != null ? timezone : ZoneId.systemDefault());
@@ -715,12 +805,23 @@ public class OpeningHours {
     }
     
     /**
-     * Get previous close date/time
+     * Get previous close date/time from the given date/time
+     * 
+     * @param dateTime the starting date/time (null for now)
+     * @return the previous close date/time
      */
     public LocalDateTime previousClose(LocalDateTime dateTime) {
         return previousClose(dateTime, null, null);
     }
     
+    /**
+     * Get previous close date/time with search limits
+     * 
+     * @param dateTime the starting date/time (null for now)
+     * @param searchUntil throw exception if not found after this time
+     * @param cap return this time if not found after it
+     * @return the previous close date/time
+     */
     public LocalDateTime previousClose(LocalDateTime dateTime, LocalDateTime searchUntil, LocalDateTime cap) {
         if (dateTime == null) {
             dateTime = LocalDateTime.now(timezone != null ? timezone : ZoneId.systemDefault());
@@ -777,7 +878,10 @@ public class OpeningHours {
     }
     
     /**
-     * Get current open range
+     * Get current open range at the given date/time
+     * 
+     * @param dateTime the date/time to check (null for now)
+     * @return Optional containing the current open TimeRange, or empty if closed
      */
     public Optional<TimeRange> currentOpenRange(LocalDateTime dateTime) {
         if (dateTime == null) {
@@ -797,7 +901,10 @@ public class OpeningHours {
     }
     
     /**
-     * Get current open range start
+     * Get current open range start time
+     * 
+     * @param dateTime the date/time to check (null for now)
+     * @return Optional containing the start date/time, or empty if closed
      */
     public Optional<LocalDateTime> currentOpenRangeStart(LocalDateTime dateTime) {
         Optional<TimeRange> range = currentOpenRange(dateTime);
@@ -809,7 +916,10 @@ public class OpeningHours {
     }
     
     /**
-     * Get current open range end
+     * Get current open range end time
+     * 
+     * @param dateTime the date/time to check (null for now)
+     * @return Optional containing the end date/time, or empty if closed
      */
     public Optional<LocalDateTime> currentOpenRangeEnd(LocalDateTime dateTime) {
         Optional<TimeRange> range = currentOpenRange(dateTime);
@@ -830,30 +940,66 @@ public class OpeningHours {
     
     /**
      * Calculate difference in open hours between two date/times
+     * 
+     * @param start the start date/time
+     * @param end the end date/time
+     * @return the number of open hours as a floating point number
      */
     public double diffInOpenHours(LocalDateTime start, LocalDateTime end) {
         return diffInOpenMinutes(start, end) / 60.0;
     }
     
+    /**
+     * Calculate difference in open minutes between two date/times
+     * 
+     * @param start the start date/time
+     * @param end the end date/time
+     * @return the number of open minutes as a floating point number
+     */
     public double diffInOpenMinutes(LocalDateTime start, LocalDateTime end) {
         return diffInOpenSeconds(start, end) / 60.0;
     }
     
+    /**
+     * Calculate difference in open seconds between two date/times
+     * 
+     * @param start the start date/time
+     * @param end the end date/time
+     * @return the number of open seconds as a floating point number
+     */
     public double diffInOpenSeconds(LocalDateTime start, LocalDateTime end) {
         return diffInSeconds(true, start, end);
     }
     
     /**
      * Calculate difference in closed hours between two date/times
+     * 
+     * @param start the start date/time
+     * @param end the end date/time
+     * @return the number of closed hours as a floating point number
      */
     public double diffInClosedHours(LocalDateTime start, LocalDateTime end) {
         return diffInClosedMinutes(start, end) / 60.0;
     }
     
+    /**
+     * Calculate difference in closed minutes between two date/times
+     * 
+     * @param start the start date/time
+     * @param end the end date/time
+     * @return the number of closed minutes as a floating point number
+     */
     public double diffInClosedMinutes(LocalDateTime start, LocalDateTime end) {
         return diffInClosedSeconds(start, end) / 60.0;
     }
     
+    /**
+     * Calculate difference in closed seconds between two date/times
+     * 
+     * @param start the start date/time
+     * @param end the end date/time
+     * @return the number of closed seconds as a floating point number
+     */
     public double diffInClosedSeconds(LocalDateTime start, LocalDateTime end) {
         return diffInSeconds(false, start, end);
     }
@@ -950,7 +1096,10 @@ public class OpeningHours {
     }
     
     /**
-     * Merge overlapping time ranges
+     * Merge overlapping time ranges in the schedule
+     * 
+     * @param schedule the schedule map with time range strings
+     * @return a new schedule map with merged ranges
      */
     public static Map<String, List<String>> mergeOverlappingRanges(Map<String, List<String>> schedule) {
         Map<String, List<String>> result = new HashMap<>();
@@ -1008,6 +1157,9 @@ public class OpeningHours {
     
     /**
      * Create from schedule and merge overlapping ranges
+     * 
+     * @param schedule the schedule map with potentially overlapping ranges
+     * @return a new OpeningHours instance with merged ranges
      */
     public static OpeningHours createAndMergeOverlappingRanges(Map<String, List<String>> schedule) {
         Map<String, List<String>> merged = mergeOverlappingRanges(schedule);
@@ -1018,27 +1170,53 @@ public class OpeningHours {
     
     /**
      * Create from structured data (schema.org format)
+     * 
+     * @param jsonData the JSON string in schema.org OpeningHoursSpecification format
+     * @return a new OpeningHours instance
      */
     public static OpeningHours createFromStructuredData(String jsonData) {
         return createFromStructuredData(jsonData, null, null);
     }
     
+    /**
+     * Create from structured data with timezone
+     * 
+     * @param jsonData the JSON string in schema.org format
+     * @param timezone the input timezone
+     * @param outputTimezone the output timezone
+     * @return a new OpeningHours instance
+     */
     public static OpeningHours createFromStructuredData(String jsonData, ZoneId timezone, ZoneId outputTimezone) {
-        // TODO: Implement JSON parsing
+        // TODO: Implement JSON parsing (requires JSON library like Gson or Jackson)
         return create(new HashMap<>(), timezone, outputTimezone);
     }
     
     /**
      * Convert to structured data (schema.org format)
+     * 
+     * @return a list of OpeningHoursSpecification maps
      */
     public List<Map<String, Object>> asStructuredData() {
         return asStructuredData("HH:mm", null);
     }
     
+    /**
+     * Convert to structured data with custom time format
+     * 
+     * @param format the time format pattern (e.g., "HH:mm", "HH:mm:ss")
+     * @return a list of OpeningHoursSpecification maps
+     */
     public List<Map<String, Object>> asStructuredData(String format) {
         return asStructuredData(format, null);
     }
     
+    /**
+     * Convert to structured data with custom format and timezone
+     * 
+     * @param format the time format pattern
+     * @param timezone the timezone to use
+     * @return a list of OpeningHoursSpecification maps
+     */
     public List<Map<String, Object>> asStructuredData(String format, ZoneId timezone) {
         // TODO: Implement conversion to schema.org format
         return new ArrayList<>();
